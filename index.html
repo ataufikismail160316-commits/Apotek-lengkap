@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Digital - Toko Taufik</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #27ae60; --dark: #2c3e50; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f8f9fa; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1000px; margin: auto; padding: 15px; }
+        .search-box { width: 100%; padding: 12px 40px; border-radius: 25px; border: 1px solid #ddd; box-sizing: border-box; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .card-body { padding: 12px; flex-grow: 1; }
+        .nama-obat { font-size: 14px; font-weight: bold; color: var(--dark); margin: 5px 0; display: block; }
+        .harga { color: #e74c3c; font-weight: bold; font-size: 15px; }
+        .stok { font-size: 11px; color: #7f8c8d; }
+        .btn-wa { background: #25d366; color: white; text-decoration: none; text-align: center; padding: 8px; font-size: 12px; font-weight: bold; }
+        @media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+
+<header>
+    <h3 style="margin:0">KATALOG DIGITAL TAUFIK</h3>
+</header>
+
+<div class="container">
+    <input type="text" id="searchInput" class="search-box" placeholder="Cari obat..." onkeyup="cariBarang()">
+    <div id="produk-list" class="grid">Memuat data...</div>
+</div>
+
+<script>
+    const URL_PROJECT = 'https://koyrvhtqsqbinagynfyf.supabase.co';
+    const KEY_PROJECT = 'sb_publishable_7UyNt1p50WprNz-K-_bFng_cymPxs5M';
+    const sbClient = supabase.createClient(URL_PROJECT, KEY_PROJECT);
+    
+    let semuaProduk = [];
+
+    async function ambilData() {
+        const { data, error } = await sbClient.from('prodak').select('*').order('nama_barang', { ascending: true });
+        if (error) { document.getElementById('produk-list').innerHTML = error.message; return; }
+        semuaProduk = data;
+        tampilkanData(semuaProduk);
+    }
+
+    function tampilkanData(list) {
+        let html = '';
+        list.forEach(item => {
+            const linkWA = `https://wa.me/6281234567890?text=Halo, saya pesan: ${item.nama_barang}`;
+            html += `
+                <div class="card">
+                    <div class="card-body">
+                        <span style="font-size:10px; color:green">${item.kategori || 'UMUM'}</span>
+                        <span class="nama-obat">${item.nama_barang}</span>
+                        <div class="harga">Rp ${Number(item.harga_eceran).toLocaleString('id-ID')}</div>
+                        <div class="stok">Stok: ${item.stok}</div>
+                    </div>
+                    <a href="${linkWA}" class="btn-wa" target="_blank"><i class="fab fa-whatsapp"></i> PESAN</a>
+                </div>`;
+        });
+        document.getElementById('produk-list').innerHTML = html;
+    }
+
+    function cariBarang() {
+        const kw = document.getElementById('searchInput').value.toLowerCase();
+        const filter = semuaProduk.filter(p => p.nama_barang.toLowerCase().includes(kw));
+        tampilkanData(filter);
+    }
+    ambilData();
+</script>
+</body>
+</html>
